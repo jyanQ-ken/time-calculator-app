@@ -88,6 +88,13 @@
     letter-spacing: 1px;
     word-break: break-all;
   }
+  .sub-total {
+    text-align: right;
+    font-size: 13px;
+    color: var(--sub);
+    min-height: 16px;
+    margin-top: 2px;
+  }
   .keypad {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -131,6 +138,84 @@
   button.zero {
     grid-column: span 2;
   }
+  .detail-toggle {
+    display: none;
+    margin: -4px 0 12px;
+  }
+  .detail-toggle button {
+    width: 100%;
+    background: var(--unit);
+    font-size: 14px;
+    padding: 10px 0;
+  }
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 10;
+  }
+  .modal-overlay.open {
+    display: flex;
+  }
+  .modal {
+    background: var(--bg);
+    border-radius: 14px;
+    width: 100%;
+    max-width: 340px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    font-size: 16px;
+    font-weight: bold;
+    border-bottom: 1px solid var(--btn);
+  }
+  .modal-header button {
+    background: transparent;
+    padding: 4px 8px;
+    font-size: 16px;
+  }
+  .modal-start {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--btn);
+  }
+  .modal-start label {
+    display: block;
+    font-size: 12px;
+    color: var(--sub);
+    margin-bottom: 6px;
+  }
+  .modal-start input {
+    width: 100%;
+    background: var(--btn);
+    border: none;
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 18px;
+    padding: 8px;
+  }
+  .modal-list {
+    overflow-y: auto;
+    padding: 4px 16px 12px;
+  }
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--btn);
+    font-size: 15px;
+  }
+  .detail-row:last-child { border-bottom: none; }
 </style>
 </head>
 <body>
@@ -144,6 +229,11 @@
   <div class="display">
     <div class="expr" id="expr"></div>
     <div class="current" id="current">0</div>
+    <div class="sub-total" id="sub-total"></div>
+  </div>
+
+  <div class="detail-toggle" id="detail-toggle">
+    <button id="btn-detail">詳細を見る（各回の完了時刻）</button>
   </div>
 
   <div class="keypad">
@@ -172,6 +262,20 @@
     <button class="op" id="btn-add">+</button>
 
     <button class="eq" id="btn-eq" style="grid-column: span 4;">=</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span>各回の完了時刻</span>
+      <button id="modal-close">✕</button>
+    </div>
+    <div class="modal-start">
+      <label>開始時刻</label>
+      <input type="time" id="detail-start">
+    </div>
+    <div class="modal-list" id="detail-list"></div>
   </div>
 </div>
 
@@ -205,6 +309,7 @@
   let pendingOp = null;       // '×' | '+'
   let entryType = 'duration'; // 今入力中の値の種類: 'duration' | 'time' | 'count'
   let historyText = '';       // 画面上部に残す計算過程
+  let lastMultiply = null;    // 直前の「時間 × 回数」の内訳（詳細ボタン用）
 
   const HINTS = {
     duration: '時間を入力してください',
@@ -286,7 +391,7 @@
     }
     if (op === '+') {
       if (bothNumber) return { value: first + second, type: 'number' };
-      return { value: first + second, type: 'time' }; // 時間 + 時刻 → 時刻
+      return { value: first + second, type: firstType }; // 時間+時間→時間、時刻+時間→時刻のまま
     }
     // op === '−'
     if (bothNumber) return { value: first - second, type: 'number' };
@@ -300,13 +405,24 @@
     exprEl.textContent = historyText;
 
     const entryText = formatEntryText(segAccum, raw, entryType);
+    let displaySec = 0;
+    let displayType = null;
     if (entryText !== '') {
       currentEl.textContent = entryText;
+      displaySec = segAccum;
+      displayType = effectiveType(entryType, usedUnit);
     } else if (pendingOp === null && accSec !== null) {
       currentEl.textContent = formatResultText(accSec, accType);
+      displaySec = accSec;
+      displayType = accType;
     } else {
       currentEl.textContent = '0';
     }
+
+    document.getElementById('sub-total').textContent =
+      (displayType === 'duration' && displaySec > 0)
+        ? '合計 ' + Math.round(displaySec / 60) + '分'
+        : '';
 
     hintEl.textContent = HINTS[entryType] || '';
     document.getElementById('btn-mul').classList.toggle('active', pendingOp === '×');
@@ -325,6 +441,8 @@
     pendingOp = null;
     entryType = 'duration';
     historyText = '';
+    lastMultiply = null;
+    updateDetailButton();
     updateDisplay();
   }
 
@@ -337,6 +455,8 @@
       historyText = '';
       segStack = [];
       usedUnit = false;
+      lastMultiply = null;
+      updateDetailButton();
     }
   }
 
@@ -399,7 +519,7 @@
     segStack = [];
     usedUnit = false;
     raw = '';
-    entryType = (op === '×' || op === '÷') ? 'count' : 'time';
+    entryType = (op === '×' || op === '÷') ? 'count' : 'duration';
     updateDisplay();
   }
 
@@ -408,9 +528,22 @@
     flushRaw();
     const secondType = effectiveType(entryType, usedUnit);
     const secondText = formatResultText(segAccum, secondType);
-    const r = computeOp(pendingOp, accSec, accType, segAccum, secondType);
+    const op = pendingOp;
+    const firstVal = accSec;
+    const firstType = accType;
+
+    const r = computeOp(op, firstVal, firstType, segAccum, secondType);
     accSec = r.value;
     accType = r.type;
+
+    if (op === '×' && firstType === 'duration' && firstVal > 0 && segAccum > 0) {
+      lastMultiply = { perSec: firstVal, count: Math.min(segAccum, 500) };
+    } else if (accType === 'duration' && accSec > 0) {
+      lastMultiply = { perSec: accSec, count: 1 };
+    } else {
+      lastMultiply = null;
+    }
+
     historyText += ' ' + secondText + ' = ' + formatResultText(accSec, accType);
     pendingOp = null;
     segAccum = 0;
@@ -418,7 +551,47 @@
     usedUnit = false;
     raw = '';
     entryType = accType === 'time' ? 'time' : 'duration';
+    updateDetailButton();
     updateDisplay();
+  }
+
+  function updateDetailButton() {
+    const label = lastMultiply && lastMultiply.count > 1
+      ? '詳細を見る（各回の完了時刻）'
+      : '終了時刻を計算する';
+    document.getElementById('btn-detail').textContent = label;
+    document.getElementById('detail-toggle').style.display = lastMultiply ? 'block' : 'none';
+  }
+
+  function renderDetailList() {
+    const startVal = document.getElementById('detail-start').value;
+    const listEl = document.getElementById('detail-list');
+    if (!startVal || !lastMultiply) {
+      listEl.innerHTML = '';
+      return;
+    }
+    const [hh, mm] = startVal.split(':').map(Number);
+    let t = hh * 3600 + mm * 60;
+    let html = '';
+    for (let i = 1; i <= lastMultiply.count; i++) {
+      t += lastMultiply.perSec;
+      const label = lastMultiply.count > 1 ? i + '回目' : '終了時刻';
+      html += '<div class="detail-row"><span>' + label + '</span><span>' +
+        formatResultText(t, 'time') + '</span></div>';
+    }
+    listEl.innerHTML = html;
+  }
+
+  function openDetailModal() {
+    if (!lastMultiply) return;
+    const startInput = document.getElementById('detail-start');
+    if (!startInput.value) startInput.value = '00:00';
+    renderDetailList();
+    document.getElementById('modal-overlay').classList.add('open');
+  }
+
+  function closeDetailModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
   }
 
   document.querySelectorAll('button.num').forEach(btn => {
@@ -434,7 +607,14 @@
   document.getElementById('btn-h').addEventListener('click', pressUnitHour);
   document.getElementById('btn-m').addEventListener('click', pressUnitMinute);
   document.getElementById('btn-s').addEventListener('click', pressUnitSecond);
+  document.getElementById('btn-detail').addEventListener('click', openDetailModal);
+  document.getElementById('modal-close').addEventListener('click', closeDetailModal);
+  document.getElementById('modal-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'modal-overlay') closeDetailModal();
+  });
+  document.getElementById('detail-start').addEventListener('input', renderDetailList);
 
+  updateDetailButton();
   updateDisplay();
 </script>
 </body>
