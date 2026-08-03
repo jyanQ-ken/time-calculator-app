@@ -364,6 +364,16 @@
     return text;
   }
 
+  function formatClockKanji(sec) {
+    sec = ((Math.round(sec) % 86400) + 86400) % 86400;
+    const hh = Math.floor(sec / 3600);
+    const mm = Math.floor((sec % 3600) / 60);
+    const ss = sec % 60;
+    let text = hh + '時' + mm + '分';
+    if (ss > 0) text += ss + '秒';
+    return text;
+  }
+
   function flushRaw() {
     if (raw === '') return;
     if (entryType === 'count') {
@@ -580,7 +590,7 @@
       t += lastMultiply.perSec;
       const label = lastMultiply.count > 1 ? i + '回目' : '終了時刻';
       html += '<div class="detail-row"><span>' + label + '</span><span>' +
-        formatResultText(t, 'time') + '</span></div>';
+        formatClockKanji(t) + '</span></div>';
     }
     listEl.innerHTML = html;
   }
