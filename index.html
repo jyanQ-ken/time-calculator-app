@@ -150,27 +150,28 @@
     <button class="unit" id="btn-h">時</button>
     <button class="unit" id="btn-m">分</button>
     <button class="unit" id="btn-s">秒</button>
-    <div></div>
-
     <button class="func" id="btn-clear">C</button>
-    <button class="func" id="btn-back">⌫</button>
-    <button class="op" id="btn-mul">×</button>
-    <button class="op" id="btn-add">+</button>
 
     <button class="num">7</button>
     <button class="num">8</button>
     <button class="num">9</button>
-    <button class="eq" id="btn-eq" style="grid-row: span 3;">=</button>
+    <button class="op" id="btn-div">÷</button>
 
     <button class="num">4</button>
     <button class="num">5</button>
     <button class="num">6</button>
+    <button class="op" id="btn-mul">×</button>
 
     <button class="num">1</button>
     <button class="num">2</button>
     <button class="num">3</button>
+    <button class="op" id="btn-sub">−</button>
 
     <button class="num zero">0</button>
+    <button class="func" id="btn-back">⌫</button>
+    <button class="op" id="btn-add">+</button>
+
+    <button class="eq" id="btn-eq" style="grid-column: span 4;">=</button>
   </div>
 </div>
 
@@ -272,15 +273,27 @@
   }
 
   function computeOp(op, first, firstType, second, secondType) {
+    const bothNumber = firstType === 'number' && secondType === 'number';
+
     if (op === '×') {
       const type = firstType === 'number' ? 'number' : 'duration';
       return { value: Math.round(first * second), type };
     }
-    // op === '+'
-    if (firstType === 'number' && secondType === 'number') {
-      return { value: first + second, type: 'number' }; // ただの足し算
+    if (op === '÷') {
+      const type = firstType === 'number' ? 'number' : 'duration';
+      const value = second === 0 ? 0 : first / second;
+      return { value: Math.round(value), type };
     }
-    return { value: first + second, type: 'time' }; // 時間 + 時刻 → 時刻
+    if (op === '+') {
+      if (bothNumber) return { value: first + second, type: 'number' };
+      return { value: first + second, type: 'time' }; // 時間 + 時刻 → 時刻
+    }
+    // op === '−'
+    if (bothNumber) return { value: first - second, type: 'number' };
+    let value = first - second;
+    const type = firstType; // 時刻から引けば時刻、時間から引けば時間のまま
+    if (type === 'duration') value = Math.max(0, value); // 時間はマイナスにしない
+    return { value, type };
   }
 
   function updateDisplay() {
@@ -297,7 +310,9 @@
 
     hintEl.textContent = HINTS[entryType] || '';
     document.getElementById('btn-mul').classList.toggle('active', pendingOp === '×');
+    document.getElementById('btn-div').classList.toggle('active', pendingOp === '÷');
     document.getElementById('btn-add').classList.toggle('active', pendingOp === '+');
+    document.getElementById('btn-sub').classList.toggle('active', pendingOp === '−');
   }
 
   function reset() {
@@ -384,7 +399,7 @@
     segStack = [];
     usedUnit = false;
     raw = '';
-    entryType = op === '×' ? 'count' : 'time';
+    entryType = (op === '×' || op === '÷') ? 'count' : 'time';
     updateDisplay();
   }
 
@@ -412,7 +427,9 @@
   document.getElementById('btn-clear').addEventListener('click', reset);
   document.getElementById('btn-back').addEventListener('click', pressBack);
   document.getElementById('btn-mul').addEventListener('click', () => pressOp('×'));
+  document.getElementById('btn-div').addEventListener('click', () => pressOp('÷'));
   document.getElementById('btn-add').addEventListener('click', () => pressOp('+'));
+  document.getElementById('btn-sub').addEventListener('click', () => pressOp('−'));
   document.getElementById('btn-eq').addEventListener('click', pressEqual);
   document.getElementById('btn-h').addEventListener('click', pressUnitHour);
   document.getElementById('btn-m').addEventListener('click', pressUnitMinute);
