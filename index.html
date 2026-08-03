@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>時間電卓</title>
+<style>
+  :root {
+    --bg: #1c1c1e;
+    --accent: #ff9f0a;
+    --text: #ffffff;
+    --sub: #8e8e93;
+    --btn: #3a3a3c;
+    --unit: #55535a;
+    --func: #5a5a5c;
+    --display-bg: #000000;
+    --op-active: #ffffff;
+  }
+  :root[data-theme="light"] {
+    --bg: #f2f2f7;
+    --accent: #ff9500;
+    --text: #1c1c1e;
+    --sub: #6e6e73;
+    --btn: #e5e5ea;
+    --unit: #d1d1d6;
+    --func: #d1d1d6;
+    --display-bg: #ffffff;
+    --op-active: #1c1c1e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .top-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: -4px;
+  }
+  .theme-toggle {
+    border: none;
+    border-radius: 999px;
+    background: var(--btn);
+    color: var(--text);
+    font-size: 13px;
+    padding: 6px 14px;
+    cursor: pointer;
+  }
+  .app {
+    width: 100%;
+    max-width: 380px;
+    padding: 14px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 20px;
+    margin: 6px 0 12px;
+  }
+  .hint {
+    text-align: center;
+    font-size: 12px;
+    color: var(--sub);
+    margin: -6px 0 12px;
+    min-height: 16px;
+  }
+  .display {
+    background: var(--display-bg);
+    border-radius: 14px;
+    padding: 16px 16px;
+    margin-bottom: 12px;
+  }
+  .expr {
+    text-align: right;
+    font-size: 15px;
+    color: var(--sub);
+    min-height: 18px;
+    margin-bottom: 4px;
+  }
+  .current {
+    text-align: right;
+    font-size: 32px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    word-break: break-all;
+  }
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  button {
+    border: none;
+    border-radius: 12px;
+    font-size: 18px;
+    padding: 16px 0;
+    cursor: pointer;
+    color: var(--text);
+    background: var(--btn);
+  }
+  button:active { opacity: 0.7; }
+  button.unit {
+    background: var(--unit);
+    font-size: 16px;
+  }
+  button.op {
+    background: var(--accent);
+    color: #000;
+    font-weight: bold;
+  }
+  button.op.active {
+    background: var(--op-active);
+    color: #000;
+  }
+  :root[data-theme="light"] button.op.active {
+    color: #fff;
+  }
+  button.func {
+    background: var(--func);
+  }
+  button.eq {
+    background: var(--accent);
+    color: #000;
+    font-weight: bold;
+    font-size: 22px;
+  }
+  button.zero {
+    grid-column: span 2;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top-bar">
+    <button class="theme-toggle" id="btn-theme">🌙 ダーク</button>
+  </div>
+  <h1>時間電卓</h1>
+  <div class="hint" id="hint"></div>
+
+  <div class="display">
+    <div class="expr" id="expr"></div>
+    <div class="current" id="current">0</div>
+  </div>
+
+  <div class="keypad">
+    <button class="unit" id="btn-h">時</button>
+    <button class="unit" id="btn-m">分</button>
+    <button class="unit" id="btn-s">秒</button>
+    <div></div>
+
+    <button class="func" id="btn-clear">C</button>
+    <button class="func" id="btn-back">⌫</button>
+    <button class="op" id="btn-mul">×</button>
+    <button class="op" id="btn-add">+</button>
+
+    <button class="num">7</button>
+    <button class="num">8</button>
+    <button class="num">9</button>
+    <button class="eq" id="btn-eq" style="grid-row: span 3;">=</button>
+
+    <button class="num">4</button>
+    <button class="num">5</button>
+    <button class="num">6</button>
+
+    <button class="num">1</button>
+    <button class="num">2</button>
+    <button class="num">3</button>
+
+    <button class="num zero">0</button>
+  </div>
+</div>
+
+<script>
+  const themeBtn = document.getElementById('btn-theme');
+  const savedTheme = localStorage.getItem('time-calc-theme') ||
+    (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  applyTheme(savedTheme);
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    themeBtn.textContent = theme === 'dark' ? '🌙 ダーク' : '☀️ ライト';
+    localStorage.setItem('time-calc-theme', theme);
+  }
+
+  themeBtn.addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+  });
+
+  const exprEl = document.getElementById('expr');
+  const currentEl = document.getElementById('current');
+  const hintEl = document.getElementById('hint');
+
+  let raw = '';               // 単位未確定の入力中の数字
+  let segAccum = 0;           // 現在組み立て中の値（秒、countのときは個数そのもの）
+  let segStack = [];          // 単位ボタンで確定した量を順番に記録（⌫で1つずつ戻すため）
+  let usedUnit = false;       // 今の入力で時/分/秒ボタンを1回でも押したか（押していなければ普通の数値として扱う）
+  let accSec = null;          // 確定済みの1つ前の値（秒）
+  let accType = null;         // 'duration' | 'time' | 'count'
+  let pendingOp = null;       // '×' | '+'
+  let entryType = 'duration'; // 今入力中の値の種類: 'duration' | 'time' | 'count'
+  let historyText = '';       // 画面上部に残す計算過程
+
+  const HINTS = {
+    duration: '時間を入力してください',
+    time: '時刻を入力（例: 1→4→時 1→4→分）',
+    count: '個数を入力してください'
+  };
+
+  const UNIT_LABEL = {
+    duration: { h: '時間', m: '分', s: '秒' },
+    time: { h: '時', m: '分', s: '秒' }
+  };
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function formatEntryText(sec, r, type) {
+    if (type === 'count') {
+      if (r !== '') return r;
+      return sec > 0 ? String(sec) : '';
+    }
+    const labels = UNIT_LABEL[type];
+    const hh = Math.floor(sec / 3600);
+    const mm = Math.floor((sec % 3600) / 60);
+    const ss = sec % 60;
+    let text = '';
+    if (hh > 0) text += hh + labels.h;
+    if (mm > 0) text += mm + labels.m;
+    if (ss > 0) text += ss + labels.s;
+    text += r;
+    return text;
+  }
+
+  function formatResultText(sec, type) {
+    sec = Math.round(sec);
+    if (type === 'time') {
+      sec = ((sec % 86400) + 86400) % 86400;
+      const hh = Math.floor(sec / 3600);
+      const mm = Math.floor((sec % 3600) / 60);
+      const ss = sec % 60;
+      return pad(hh) + ':' + pad(mm) + (ss ? ':' + pad(ss) : '');
+    }
+    if (type === 'count' || type === 'number') return String(sec);
+    const hh = Math.floor(sec / 3600);
+    const mm = Math.floor((sec % 3600) / 60);
+    const ss = sec % 60;
+    let text = '';
+    if (hh > 0) text += hh + '時間';
+    if (hh > 0 || mm > 0) text += mm + '分';
+    text += ss + '秒';
+    return text;
+  }
+
+  function flushRaw() {
+    if (raw === '') return;
+    if (entryType === 'count') {
+      segAccum = parseInt(raw, 10);
+    } else {
+      segAccum += parseInt(raw, 10); // 単位ボタンを押さずに演算子/=を押した場合は「秒」扱い
+    }
+    raw = '';
+  }
+
+  function effectiveType(type, used) {
+    // 時/分/秒ボタンを一度も使っていなければ、ただの数値として扱う
+    if (type === 'count') return 'number';
+    return used ? type : 'number';
+  }
+
+  function computeOp(op, first, firstType, second, secondType) {
+    if (op === '×') {
+      const type = firstType === 'number' ? 'number' : 'duration';
+      return { value: Math.round(first * second), type };
+    }
+    // op === '+'
+    if (firstType === 'number' && secondType === 'number') {
+      return { value: first + second, type: 'number' }; // ただの足し算
+    }
+    return { value: first + second, type: 'time' }; // 時間 + 時刻 → 時刻
+  }
+
+  function updateDisplay() {
+    exprEl.textContent = historyText;
+
+    const entryText = formatEntryText(segAccum, raw, entryType);
+    if (entryText !== '') {
+      currentEl.textContent = entryText;
+    } else if (pendingOp === null && accSec !== null) {
+      currentEl.textContent = formatResultText(accSec, accType);
+    } else {
+      currentEl.textContent = '0';
+    }
+
+    hintEl.textContent = HINTS[entryType] || '';
+    document.getElementById('btn-mul').classList.toggle('active', pendingOp === '×');
+    document.getElementById('btn-add').classList.toggle('active', pendingOp === '+');
+  }
+
+  function reset() {
+    raw = '';
+    segAccum = 0;
+    segStack = [];
+    usedUnit = false;
+    accSec = null;
+    accType = null;
+    pendingOp = null;
+    entryType = 'duration';
+    historyText = '';
+    updateDisplay();
+  }
+
+  function startFreshIfNeeded() {
+    // 直前に = で結果が出た状態から新しく打ち始めたら計算をリセット
+    if (pendingOp === null && accSec !== null && raw === '' && segAccum === 0) {
+      accSec = null;
+      accType = null;
+      entryType = 'duration';
+      historyText = '';
+      segStack = [];
+      usedUnit = false;
+    }
+  }
+
+  function pressDigit(d) {
+    startFreshIfNeeded();
+    if (raw.length >= 6) return;
+    raw += d;
+    updateDisplay();
+  }
+
+  function pressBack() {
+    if (raw.length > 0) {
+      raw = raw.slice(0, -1);
+    } else if (segStack.length > 0) {
+      const last = segStack.pop();
+      segAccum -= last;
+    }
+    updateDisplay();
+  }
+
+  function pressUnitHour() {
+    if (entryType === 'count') return;
+    const amount = parseInt(raw || '0', 10) * 3600;
+    segAccum += amount;
+    segStack.push(amount);
+    usedUnit = true;
+    raw = '';
+    updateDisplay();
+  }
+  function pressUnitMinute() {
+    if (entryType === 'count') return;
+    const amount = parseInt(raw || '0', 10) * 60;
+    segAccum += amount;
+    segStack.push(amount);
+    usedUnit = true;
+    raw = '';
+    updateDisplay();
+  }
+  function pressUnitSecond() {
+    if (entryType === 'count') return;
+    const amount = parseInt(raw || '0', 10);
+    segAccum += amount;
+    segStack.push(amount);
+    usedUnit = true;
+    raw = '';
+    updateDisplay();
+  }
+
+  function pressOp(op) {
+    flushRaw();
+    if (accSec === null) {
+      accSec = segAccum;
+      accType = effectiveType(entryType, usedUnit);
+      historyText = formatResultText(accSec, accType) + ' ' + op;
+    } else {
+      historyText += ' ' + op;
+    }
+    pendingOp = op;
+    segAccum = 0;
+    segStack = [];
+    usedUnit = false;
+    raw = '';
+    entryType = op === '×' ? 'count' : 'time';
+    updateDisplay();
+  }
+
+  function pressEqual() {
+    if (pendingOp === null) return;
+    flushRaw();
+    const secondType = effectiveType(entryType, usedUnit);
+    const secondText = formatResultText(segAccum, secondType);
+    const r = computeOp(pendingOp, accSec, accType, segAccum, secondType);
+    accSec = r.value;
+    accType = r.type;
+    historyText += ' ' + secondText + ' = ' + formatResultText(accSec, accType);
+    pendingOp = null;
+    segAccum = 0;
+    segStack = [];
+    usedUnit = false;
+    raw = '';
+    entryType = accType === 'time' ? 'time' : 'duration';
+    updateDisplay();
+  }
+
+  document.querySelectorAll('button.num').forEach(btn => {
+    btn.addEventListener('click', () => pressDigit(btn.textContent));
+  });
+  document.getElementById('btn-clear').addEventListener('click', reset);
+  document.getElementById('btn-back').addEventListener('click', pressBack);
+  document.getElementById('btn-mul').addEventListener('click', () => pressOp('×'));
+  document.getElementById('btn-add').addEventListener('click', () => pressOp('+'));
+  document.getElementById('btn-eq').addEventListener('click', pressEqual);
+  document.getElementById('btn-h').addEventListener('click', pressUnitHour);
+  document.getElementById('btn-m').addEventListener('click', pressUnitMinute);
+  document.getElementById('btn-s').addEventListener('click', pressUnitSecond);
+
+  updateDisplay();
+</script>
+</body>
+</html>
