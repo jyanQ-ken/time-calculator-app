@@ -222,6 +222,14 @@
     font-size: 14px;
     color: var(--sub);
   }
+  .modal-formula {
+    padding: 10px 16px;
+    font-size: 13px;
+    letter-spacing: 0.01em;
+    color: var(--sub);
+    border-bottom: 1px solid var(--line);
+    min-height: 16px;
+  }
   .modal-start {
     padding: 12px 16px;
     border-bottom: 1px solid var(--line);
@@ -387,6 +395,7 @@
       <span>各回の完了時刻</span>
       <button id="modal-close">✕</button>
     </div>
+    <div class="modal-formula" id="modal-formula"></div>
     <div class="modal-start">
       <label>開始時刻</label>
       <input type="time" id="detail-start">
@@ -749,6 +758,7 @@
 
   function openDetailModal() {
     if (!lastMultiply) return;
+    document.getElementById('modal-formula').textContent = historyText;
     const startInput = document.getElementById('detail-start');
     if (!startInput.value) startInput.value = '00:00';
     renderDetailList();
