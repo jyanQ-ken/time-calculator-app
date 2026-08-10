@@ -33,6 +33,12 @@
     --display-bg: #ffffff;
   }
   * { box-sizing: border-box; touch-action: manipulation; }
+  input[type="number"] { -moz-appearance: textfield; }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
   body {
     margin: 0;
     background: var(--bg);
@@ -280,7 +286,8 @@
     color: var(--accent);
   }
   .detail-row-formula {
-    text-align: right;
+    text-align: left;
+    margin-left: calc(3.5em + 6px);
     font-size: 11px;
     color: var(--accent);
     letter-spacing: 0.02em;
@@ -297,14 +304,18 @@
     font-size: 10px;
     color: var(--sub);
   }
+  .detail-row-adj .adj-pm {
+    font-size: 13px;
+    color: var(--sub);
+  }
   .detail-row-adj input {
-    width: 46px;
+    width: 56px;
     background: var(--btn-bg);
     border: 1px solid var(--line);
     border-radius: 0;
     color: var(--text);
-    font-size: 12px;
-    padding: 4px 2px;
+    font-size: 13px;
+    padding: 6px 4px;
     text-align: center;
     font-family: inherit;
   }
@@ -725,7 +736,7 @@
         : '';
       const signText = thisAdjMin > 0 ? '+' + thisAdjMin + '分' : thisAdjMin < 0 ? thisAdjMin + '分' : '';
       const adjInput = lastMultiply.count > 1
-        ? '<div class="detail-row-adj">' +
+        ? '<div class="detail-row-adj"><span class="adj-pm">±</span>' +
           '<input type="number" class="row-adj" data-idx="' + (i - 1) + '" value="' +
           (rowAdjustments[i - 1] || '') + '" placeholder="0"><span class="adj-unit">分</span>' +
           '<span class="adj-sign">' + signText + '</span></div>'
