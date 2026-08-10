@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>時間電卓</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
@@ -30,7 +30,7 @@
     --display-bg: #ffffff;
     --op-active: #1c1c1e;
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; touch-action: manipulation; }
   body {
     margin: 0;
     background: var(--bg);
