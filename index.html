@@ -233,6 +233,7 @@
   .modal-start {
     padding: 14px 20px;
     border-bottom: 1px solid var(--line);
+    overflow: hidden;
   }
   .modal-start label {
     display: block;
@@ -243,6 +244,8 @@
   }
   .modal-start input {
     width: 100%;
+    min-width: 0;
+    max-width: 100%;
     background: var(--btn-bg);
     border: 1px solid var(--line);
     border-radius: 0;
@@ -250,6 +253,12 @@
     font-size: 20px;
     padding: 10px;
     font-family: inherit;
+  }
+  .modal-start input[type="time"] {
+    color-scheme: dark;
+  }
+  :root[data-theme="light"] .modal-start input[type="time"] {
+    color-scheme: light;
   }
   .adjust-row {
     display: flex;
