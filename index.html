@@ -278,6 +278,10 @@
       <label>開始時刻</label>
       <input type="time" id="detail-start">
     </div>
+    <div class="modal-start">
+      <label>調整（分）例: 休憩を挟むときは +40、−40 のように入力</label>
+      <input type="number" id="detail-adjust" placeholder="±分">
+    </div>
     <div class="modal-list" id="detail-list"></div>
   </div>
 </div>
@@ -583,6 +587,7 @@
       listEl.innerHTML = '';
       return;
     }
+    const adjustMin = parseInt(document.getElementById('detail-adjust').value, 10) || 0;
     const [hh, mm] = startVal.split(':').map(Number);
     let t = hh * 3600 + mm * 60;
     let html = '';
@@ -590,7 +595,7 @@
       t += lastMultiply.perSec;
       const label = lastMultiply.count > 1 ? i + '回目' : '終了時刻';
       html += '<div class="detail-row"><span>' + label + '</span><span>' +
-        formatClockKanji(t) + '</span></div>';
+        formatClockKanji(t + adjustMin * 60) + '</span></div>';
     }
     listEl.innerHTML = html;
   }
@@ -626,6 +631,7 @@
     if (e.target.id === 'modal-overlay') closeDetailModal();
   });
   document.getElementById('detail-start').addEventListener('input', renderDetailList);
+  document.getElementById('detail-adjust').addEventListener('input', renderDetailList);
 
   updateDetailButton();
   updateDisplay();
