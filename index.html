@@ -298,42 +298,39 @@
   .detail-row-adj {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    gap: 6px;
-    margin-top: 6px;
+    gap: 10px;
+    margin-top: 8px;
   }
-  .detail-row-adj .adj-label {
-    font-size: 10px;
-    color: var(--sub);
+  .detail-row-adj input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 1px;
+    background: var(--line);
+    outline: none;
   }
-  .detail-row-adj .adj-pm {
-    font-size: 13px;
-    color: var(--sub);
-  }
-  .detail-row-adj input {
-    width: 56px;
-    background: var(--btn-bg);
-    border: 1px solid var(--line);
+  .detail-row-adj input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--accent);
     border-radius: 0;
-    color: var(--text);
-    font-size: 13px;
-    padding: 6px 4px;
-    text-align: center;
-    font-family: inherit;
+    cursor: pointer;
   }
-  .detail-row-adj .adj-unit {
-    font-size: 11px;
-    color: var(--sub);
-  }
-  .detail-row-adj input:not(:placeholder-shown) {
-    border-color: var(--accent);
-    color: var(--accent);
+  .detail-row-adj input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: var(--accent);
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
   }
   .detail-row-adj .adj-sign {
-    font-size: 11px;
+    font-size: 12px;
     color: var(--accent);
     min-width: 3.5em;
     text-align: right;
+    font-variant-numeric: tabular-nums;
   }
 </style>
 </head>
@@ -736,11 +733,11 @@
         ? '<div class="detail-row-formula">' + formatClockKanji(originalRowT) + ' ' +
           (thisAdjMin > 0 ? '+' : '') + thisAdjMin + '分 適用</div>'
         : '';
-      const signText = thisAdjMin > 0 ? '+' + thisAdjMin + '分' : thisAdjMin < 0 ? thisAdjMin + '分' : '';
+      const signText = thisAdjMin > 0 ? '+' + thisAdjMin + '分' : thisAdjMin < 0 ? thisAdjMin + '分' : '0分';
       const adjInput = lastMultiply.count > 1
-        ? '<div class="detail-row-adj"><span class="adj-pm">±</span>' +
-          '<input type="number" class="row-adj" data-idx="' + (i - 1) + '" value="' +
-          (rowAdjustments[i - 1] || '') + '" placeholder="0"><span class="adj-unit">分</span>' +
+        ? '<div class="detail-row-adj">' +
+          '<input type="range" class="row-adj" min="-120" max="120" step="5" data-idx="' + (i - 1) +
+          '" value="' + thisAdjMin + '">' +
           '<span class="adj-sign">' + signText + '</span></div>'
         : '';
       html += '<div class="detail-row"><div class="detail-row-main"><span class="detail-label">' + label +
@@ -782,6 +779,12 @@
   });
   document.getElementById('detail-start').addEventListener('input', renderDetailList);
   document.getElementById('detail-adjust').addEventListener('input', renderDetailList);
+  document.getElementById('detail-list').addEventListener('input', (e) => {
+    if (!e.target.classList.contains('row-adj')) return;
+    const val = parseInt(e.target.value, 10) || 0;
+    const signEl = e.target.parentElement.querySelector('.adj-sign');
+    if (signEl) signEl.textContent = val > 0 ? '+' + val + '分' : val < 0 ? val + '分' : '0分';
+  });
   document.getElementById('detail-list').addEventListener('change', (e) => {
     if (!e.target.classList.contains('row-adj')) return;
     const idx = parseInt(e.target.dataset.idx, 10);
