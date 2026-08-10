@@ -6,36 +6,36 @@
 <title>時間電卓</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
-<meta name="theme-color" content="#1c1c1e">
+<meta name="theme-color" content="#000000">
 <style>
   :root {
-    --bg: #1c1c1e;
-    --accent: #ff9f0a;
+    --bg: #000000;
     --text: #ffffff;
-    --sub: #8e8e93;
-    --btn: #3a3a3c;
-    --unit: #55535a;
-    --func: #5a5a5c;
+    --sub: #888888;
+    --line: #2a2a2a;
+    --btn-bg: #000000;
+    --btn-hover: #ffffff;
+    --btn-hover-text: #000000;
+    --accent: #ff5b1f;
     --display-bg: #000000;
-    --op-active: #ffffff;
   }
   :root[data-theme="light"] {
-    --bg: #f2f2f7;
-    --accent: #ff9500;
-    --text: #1c1c1e;
-    --sub: #6e6e73;
-    --btn: #e5e5ea;
-    --unit: #d1d1d6;
-    --func: #d1d1d6;
+    --bg: #ffffff;
+    --text: #000000;
+    --sub: #6b6b6b;
+    --line: #dcdcdc;
+    --btn-bg: #ffffff;
+    --btn-hover: #000000;
+    --btn-hover-text: #ffffff;
+    --accent: #ff5b1f;
     --display-bg: #ffffff;
-    --op-active: #1c1c1e;
   }
   * { box-sizing: border-box; touch-action: manipulation; }
   body {
     margin: 0;
     background: var(--bg);
     color: var(--text);
-    font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
+    font-family: "Inter", "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
     display: flex;
     justify-content: center;
     min-height: 100vh;
@@ -43,119 +43,140 @@
   .top-bar {
     display: flex;
     justify-content: flex-end;
-    margin-bottom: -4px;
+    margin-bottom: 10px;
   }
   .theme-toggle {
-    border: none;
-    border-radius: 999px;
-    background: var(--btn);
-    color: var(--text);
-    font-size: 13px;
+    border: 1px solid var(--line);
+    border-radius: 0;
+    background: var(--btn-bg);
+    color: var(--sub);
+    font-size: 11px;
+    letter-spacing: 0.08em;
     padding: 6px 14px;
     cursor: pointer;
+    transition: background 120ms, color 120ms;
   }
+  .theme-toggle:active { background: var(--btn-hover); color: var(--btn-hover-text); }
   .app {
     width: 100%;
     max-width: 380px;
-    padding: 14px;
+    padding: 20px 16px;
   }
   h1 {
     text-align: center;
-    font-size: 20px;
-    margin: 6px 0 12px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    margin: 0 0 4px;
+    text-transform: uppercase;
   }
   .hint {
     text-align: center;
-    font-size: 12px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
     color: var(--sub);
-    margin: -6px 0 12px;
-    min-height: 16px;
+    margin: 0 0 18px;
+    min-height: 14px;
   }
   .display {
     background: var(--display-bg);
-    border-radius: 14px;
-    padding: 16px 16px;
-    margin-bottom: 12px;
+    border: 1px solid var(--line);
+    border-radius: 0;
+    padding: 20px 16px;
+    margin-bottom: 16px;
   }
   .expr {
     text-align: right;
-    font-size: 15px;
+    font-size: 13px;
+    letter-spacing: 0.02em;
     color: var(--sub);
-    min-height: 18px;
-    margin-bottom: 4px;
+    min-height: 16px;
+    margin-bottom: 8px;
   }
   .current {
     text-align: right;
-    font-size: 32px;
-    font-weight: bold;
-    letter-spacing: 1px;
+    font-size: 40px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
     word-break: break-all;
+    font-variant-numeric: tabular-nums;
   }
   .sub-total {
     text-align: right;
-    font-size: 13px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
     color: var(--sub);
-    min-height: 16px;
-    margin-top: 2px;
+    min-height: 14px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--line);
   }
   .keypad {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
   }
   button {
     border: none;
-    border-radius: 12px;
+    border-radius: 0;
     font-size: 18px;
-    padding: 16px 0;
+    padding: 18px 0;
     cursor: pointer;
     color: var(--text);
-    background: var(--btn);
+    background: var(--btn-bg);
+    transition: background 100ms, color 100ms;
+    font-family: inherit;
   }
-  button:active { opacity: 0.7; }
+  button:active { background: var(--btn-hover); color: var(--btn-hover-text); }
   button.unit {
-    background: var(--unit);
-    font-size: 16px;
+    color: var(--sub);
+    font-size: 13px;
+    letter-spacing: 0.08em;
   }
   button.op {
-    background: var(--accent);
-    color: #000;
-    font-weight: bold;
+    color: var(--accent);
+    font-weight: 700;
   }
   button.op.active {
-    background: var(--op-active);
-    color: #000;
-  }
-  :root[data-theme="light"] button.op.active {
-    color: #fff;
-  }
-  button.func {
-    background: var(--func);
-  }
-  button.eq {
     background: var(--accent);
     color: #000;
-    font-weight: bold;
-    font-size: 22px;
   }
+  button.func {
+    color: var(--sub);
+    font-size: 13px;
+    letter-spacing: 0.05em;
+  }
+  button.eq {
+    background: var(--text);
+    color: var(--bg);
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.15em;
+  }
+  button.eq:active { background: var(--accent); color: #000; }
   button.zero {
     grid-column: span 2;
   }
   .detail-toggle {
     display: none;
-    margin: -4px 0 12px;
+    margin-bottom: 16px;
   }
   .detail-toggle button {
     width: 100%;
-    background: var(--unit);
-    font-size: 14px;
-    padding: 10px 0;
+    border: 1px solid var(--line);
+    color: var(--sub);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    padding: 12px 0;
   }
+  .detail-toggle button:active { background: var(--btn-hover); color: var(--btn-hover-text); }
   .modal-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.7);
     align-items: center;
     justify-content: center;
     padding: 16px;
@@ -166,7 +187,8 @@
   }
   .modal {
     background: var(--bg);
-    border-radius: 14px;
+    border: 1px solid var(--line);
+    border-radius: 0;
     width: 100%;
     max-width: 340px;
     max-height: 80vh;
@@ -179,33 +201,37 @@
     justify-content: space-between;
     align-items: center;
     padding: 14px 16px;
-    font-size: 16px;
-    font-weight: bold;
-    border-bottom: 1px solid var(--btn);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    border-bottom: 1px solid var(--line);
   }
   .modal-header button {
     background: transparent;
     padding: 4px 8px;
-    font-size: 16px;
+    font-size: 14px;
+    color: var(--sub);
   }
   .modal-start {
     padding: 12px 16px;
-    border-bottom: 1px solid var(--btn);
+    border-bottom: 1px solid var(--line);
   }
   .modal-start label {
     display: block;
-    font-size: 12px;
+    font-size: 11px;
+    letter-spacing: 0.03em;
     color: var(--sub);
     margin-bottom: 6px;
   }
   .modal-start input {
     width: 100%;
-    background: var(--btn);
-    border: none;
-    border-radius: 8px;
+    background: var(--btn-bg);
+    border: 1px solid var(--line);
+    border-radius: 0;
     color: var(--text);
-    font-size: 18px;
+    font-size: 16px;
     padding: 8px;
+    font-family: inherit;
   }
   .modal-list {
     overflow-y: auto;
@@ -213,18 +239,36 @@
   }
   .detail-row {
     display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--btn);
-    font-size: 15px;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
   }
   .detail-row:last-child { border-bottom: none; }
+  .detail-row .detail-label {
+    flex: 0 0 auto;
+    color: var(--sub);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    width: 3.5em;
+  }
+  .detail-row .detail-time {
+    flex: 1;
+    text-align: right;
+  }
+  .detail-row .detail-time-plus {
+    flex: 1;
+    text-align: right;
+    color: var(--accent);
+  }
 </style>
 </head>
 <body>
 <div class="app">
   <div class="top-bar">
-    <button class="theme-toggle" id="btn-theme">🌙 ダーク</button>
+    <button class="theme-toggle" id="btn-theme">DARK</button>
   </div>
   <h1>時間電卓</h1>
   <div class="hint" id="hint"></div>
@@ -279,8 +323,8 @@
       <input type="time" id="detail-start">
     </div>
     <div class="modal-start">
-      <label>調整（分）例: 休憩を挟むときは +40、−40 のように入力</label>
-      <input type="number" id="detail-adjust" placeholder="±分">
+      <label>◯分後の時刻も表示（例: 熟成40分なら 40 と入力）</label>
+      <input type="number" id="detail-adjust" placeholder="分">
     </div>
     <div class="modal-list" id="detail-list"></div>
   </div>
@@ -294,7 +338,7 @@
 
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
-    themeBtn.textContent = theme === 'dark' ? '🌙 ダーク' : '☀️ ライト';
+    themeBtn.textContent = theme === 'dark' ? 'DARK' : 'LIGHT';
     localStorage.setItem('time-calc-theme', theme);
   }
 
@@ -594,8 +638,11 @@
     for (let i = 1; i <= lastMultiply.count; i++) {
       t += lastMultiply.perSec;
       const label = lastMultiply.count > 1 ? i + '回目' : '終了時刻';
-      html += '<div class="detail-row"><span>' + label + '</span><span>' +
-        formatClockKanji(t + adjustMin * 60) + '</span></div>';
+      const plusText = adjustMin
+        ? '<span class="detail-time-plus">+' + adjustMin + '分後 ' + formatClockKanji(t + adjustMin * 60) + '</span>'
+        : '';
+      html += '<div class="detail-row"><span class="detail-label">' + label + '</span><span class="detail-time">' +
+        formatClockKanji(t) + '</span>' + plusText + '</div>';
     }
     listEl.innerHTML = html;
   }
