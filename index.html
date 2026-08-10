@@ -254,11 +254,15 @@
     padding: 10px;
     font-family: inherit;
   }
-  .modal-start input[type="time"] {
-    color-scheme: dark;
+  .time-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
-  :root[data-theme="light"] .modal-start input[type="time"] {
-    color-scheme: light;
+  .time-input-row input { width: auto; flex: 1; text-align: center; }
+  .time-input-row span {
+    color: var(--sub);
+    font-size: 15px;
   }
   .adjust-row {
     display: flex;
@@ -410,7 +414,12 @@
     <div class="modal-formula" id="modal-formula"></div>
     <div class="modal-start">
       <label>開始時刻</label>
-      <input type="time" id="detail-start">
+      <div class="time-input-row">
+        <input type="number" id="detail-start-h" min="0" max="23" placeholder="0" inputmode="numeric">
+        <span>時</span>
+        <input type="number" id="detail-start-m" min="0" max="59" placeholder="00" inputmode="numeric">
+        <span>分</span>
+      </div>
     </div>
     <div class="modal-start">
       <label>◯分後の時刻も表示（例: 熟成時間）</label>
@@ -722,9 +731,10 @@
   }
 
   function renderDetailList() {
-    const startVal = document.getElementById('detail-start').value;
+    const startHEl = document.getElementById('detail-start-h');
+    const startMEl = document.getElementById('detail-start-m');
     const listEl = document.getElementById('detail-list');
-    if (!startVal || !lastMultiply) {
+    if ((startHEl.value === '' && startMEl.value === '') || !lastMultiply) {
       listEl.innerHTML = '';
       return;
     }
@@ -732,7 +742,8 @@
       rowAdjustments = new Array(lastMultiply.count).fill(0);
     }
     const adjustMin = parseInt(document.getElementById('detail-adjust').value, 10) || 0;
-    const [hh, mm] = startVal.split(':').map(Number);
+    const hh = parseInt(startHEl.value, 10) || 0;
+    const mm = parseInt(startMEl.value, 10) || 0;
     const t0 = hh * 3600 + mm * 60; // 開始時刻（これより前にはならない下限）
     let t = t0;
     let cumulativeAdj = 0;
@@ -771,8 +782,12 @@
   function openDetailModal() {
     if (!lastMultiply) return;
     document.getElementById('modal-formula').textContent = historyText;
-    const startInput = document.getElementById('detail-start');
-    if (!startInput.value) startInput.value = '00:00';
+    const startHEl = document.getElementById('detail-start-h');
+    const startMEl = document.getElementById('detail-start-m');
+    if (startHEl.value === '' && startMEl.value === '') {
+      startHEl.value = '0';
+      startMEl.value = '0';
+    }
     renderDetailList();
     document.getElementById('modal-overlay').classList.add('open');
   }
@@ -799,7 +814,8 @@
   document.getElementById('modal-overlay').addEventListener('click', (e) => {
     if (e.target.id === 'modal-overlay') closeDetailModal();
   });
-  document.getElementById('detail-start').addEventListener('input', renderDetailList);
+  document.getElementById('detail-start-h').addEventListener('input', renderDetailList);
+  document.getElementById('detail-start-m').addEventListener('input', renderDetailList);
   document.getElementById('detail-adjust').addEventListener('input', renderDetailList);
   document.getElementById('detail-list').addEventListener('change', (e) => {
     if (!e.target.classList.contains('row-adj')) return;
