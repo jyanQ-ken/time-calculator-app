@@ -9,25 +9,27 @@
 <meta name="theme-color" content="#000000">
 <style>
   :root {
-    --bg: #000000;
-    --text: #ffffff;
-    --sub: #888888;
-    --line: #2a2a2a;
-    --btn-bg: #000000;
-    --btn-hover: #ffffff;
-    --btn-hover-text: #000000;
-    --accent: #ff5b1f;
-    --display-bg: #000000;
+    --bg: #121214;
+    --text: #f5f5f5;
+    --sub: #9a9a9f;
+    --line: #333336;
+    --btn-bg: #121214;
+    --btn-hover: #f5f5f5;
+    --btn-hover-text: #121214;
+    --accent: #ff6a33;
+    --accent-bg: rgba(255, 106, 51, 0.12);
+    --display-bg: #0a0a0b;
   }
   :root[data-theme="light"] {
-    --bg: #ffffff;
-    --text: #000000;
-    --sub: #6b6b6b;
+    --bg: #fafafa;
+    --text: #17171a;
+    --sub: #6b6b70;
     --line: #dcdcdc;
     --btn-bg: #ffffff;
-    --btn-hover: #000000;
+    --btn-hover: #17171a;
     --btn-hover-text: #ffffff;
-    --accent: #ff5b1f;
+    --accent: #e05420;
+    --accent-bg: rgba(224, 84, 32, 0.08);
     --display-bg: #ffffff;
   }
   * { box-sizing: border-box; touch-action: manipulation; }
@@ -64,19 +66,18 @@
   }
   h1 {
     text-align: center;
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 700;
-    letter-spacing: 0.3em;
-    margin: 0 0 4px;
-    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin: 0 0 6px;
   }
   .hint {
     text-align: center;
-    font-size: 11px;
-    letter-spacing: 0.05em;
+    font-size: 13px;
+    letter-spacing: 0.01em;
     color: var(--sub);
     margin: 0 0 18px;
-    min-height: 14px;
+    min-height: 16px;
   }
   .display {
     background: var(--display-bg);
@@ -87,10 +88,10 @@
   }
   .expr {
     text-align: right;
-    font-size: 13px;
-    letter-spacing: 0.02em;
+    font-size: 14px;
+    letter-spacing: 0.01em;
     color: var(--sub);
-    min-height: 16px;
+    min-height: 17px;
     margin-bottom: 8px;
   }
   .current {
@@ -131,13 +132,15 @@
   }
   button:active { background: var(--btn-hover); color: var(--btn-hover-text); }
   button.unit {
-    color: var(--sub);
-    font-size: 13px;
-    letter-spacing: 0.08em;
+    color: var(--text);
+    font-size: 14px;
+    letter-spacing: 0.03em;
   }
   button.op {
+    background: var(--accent-bg);
     color: var(--accent);
     font-weight: 700;
+    font-size: 19px;
   }
   button.op.active {
     background: var(--accent);
@@ -145,15 +148,15 @@
   }
   button.func {
     color: var(--sub);
-    font-size: 13px;
-    letter-spacing: 0.05em;
+    font-size: 14px;
+    letter-spacing: 0.02em;
   }
   button.eq {
     background: var(--text);
     color: var(--bg);
     font-weight: 700;
-    font-size: 15px;
-    letter-spacing: 0.15em;
+    font-size: 16px;
+    letter-spacing: 0.08em;
   }
   button.eq:active { background: var(--accent); color: #000; }
   button.zero {
@@ -166,9 +169,9 @@
   .detail-toggle button {
     width: 100%;
     border: 1px solid var(--line);
-    color: var(--sub);
-    font-size: 11px;
-    letter-spacing: 0.08em;
+    color: var(--text);
+    font-size: 13px;
+    letter-spacing: 0.02em;
     padding: 12px 0;
   }
   .detail-toggle button:active { background: var(--btn-hover); color: var(--btn-hover-text); }
@@ -232,6 +235,16 @@
     font-size: 16px;
     padding: 8px;
     font-family: inherit;
+  }
+  .adjust-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .adjust-row input { width: auto; flex: 1; }
+  .adjust-row span {
+    color: var(--sub);
+    font-size: 14px;
   }
   .modal-list {
     overflow-y: auto;
@@ -323,8 +336,11 @@
       <input type="time" id="detail-start">
     </div>
     <div class="modal-start">
-      <label>◯分後の時刻も表示（例: 熟成40分なら 40 と入力）</label>
-      <input type="number" id="detail-adjust" placeholder="分">
+      <label>◯分後の時刻も表示（例: 熟成時間）</label>
+      <div class="adjust-row">
+        <input type="number" id="detail-adjust" placeholder="0">
+        <span>分</span>
+      </div>
     </div>
     <div class="modal-list" id="detail-list"></div>
   </div>
@@ -639,7 +655,7 @@
       t += lastMultiply.perSec;
       const label = lastMultiply.count > 1 ? i + '回目' : '終了時刻';
       const plusText = adjustMin
-        ? '<span class="detail-time-plus">+' + adjustMin + '分後 ' + formatClockKanji(t + adjustMin * 60) + '</span>'
+        ? '<span class="detail-time-plus">→ ' + formatClockKanji(t + adjustMin * 60) + '</span>'
         : '';
       html += '<div class="detail-row"><span class="detail-label">' + label + '</span><span class="detail-time">' +
         formatClockKanji(t) + '</span>' + plusText + '</div>';
