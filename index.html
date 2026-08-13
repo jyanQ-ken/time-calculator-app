@@ -761,6 +761,9 @@
   });
   document.getElementById('detail-start-h').addEventListener('input', renderDetailList);
   document.getElementById('detail-start-m').addEventListener('input', renderDetailList);
+  // タップした時に中身を選択状態にして、そのまま打ち直せるようにする（「0」の後ろに数字が付くのを防ぐ）
+  document.getElementById('detail-start-h').addEventListener('focus', (e) => e.target.select());
+  document.getElementById('detail-start-m').addEventListener('focus', (e) => e.target.select());
 
   updateDetailButton();
   updateDisplay();
