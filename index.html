@@ -6,31 +6,45 @@
 <title>時間電卓</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#eef0f3" id="theme-color-meta">
 <style>
   :root {
-    --bg: #121214;
-    --text: #f5f5f5;
-    --sub: #9a9a9f;
-    --line: #333336;
-    --btn-bg: #121214;
-    --btn-hover: #f5f5f5;
-    --btn-hover-text: #121214;
-    --accent: #ff6a33;
-    --accent-bg: rgba(255, 106, 51, 0.12);
-    --display-bg: #0a0a0b;
-  }
-  :root[data-theme="light"] {
-    --bg: #fafafa;
-    --text: #17171a;
-    --sub: #6b6b70;
-    --line: #dcdcdc;
+    --bg: #eef0f3;
+    --text: #14161a;
+    --sub: #52565f;
+    --line: #c6cad2;
+    --card-bg: #ffffff;
     --btn-bg: #ffffff;
-    --btn-hover: #17171a;
-    --btn-hover-text: #ffffff;
-    --accent: #e05420;
-    --accent-bg: rgba(224, 84, 32, 0.08);
-    --display-bg: #ffffff;
+    --btn-border: #c6cad2;
+    --btn-active-bg: #dde1e7;
+    --func-bg: #e2e5ea;
+    --op-bg: #ff7a1f;
+    --op-text: #ffffff;
+    --op-active-bg: #cc5f10;
+    --eq-bg: #14161a;
+    --eq-text: #ffffff;
+    --eq-active-bg: #ff7a1f;
+    --accent: #d85a10;
+    --accent-bg: #fde7d7;
+  }
+  :root[data-theme="dark"] {
+    --bg: #101114;
+    --text: #f5f6f8;
+    --sub: #b4b8c2;
+    --line: #3a3d45;
+    --card-bg: #1b1d22;
+    --btn-bg: #24262c;
+    --btn-border: #3a3d45;
+    --btn-active-bg: #35383f;
+    --func-bg: #2c2f36;
+    --op-bg: #ff8a3d;
+    --op-text: #14161a;
+    --op-active-bg: #ffa564;
+    --eq-bg: #ff8a3d;
+    --eq-text: #14161a;
+    --eq-active-bg: #ffa564;
+    --accent: #ff9c58;
+    --accent-bg: #3a2a1a;
   }
   * { box-sizing: border-box; touch-action: manipulation; }
   input[type="number"] { -moz-appearance: textfield; }
@@ -51,69 +65,67 @@
   .top-bar {
     display: flex;
     justify-content: flex-end;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
   }
   .theme-toggle {
-    border: 1px solid var(--line);
-    border-radius: 0;
+    border: 1px solid var(--btn-border);
+    border-radius: 8px;
     background: var(--btn-bg);
-    color: var(--sub);
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    padding: 6px 14px;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 8px 16px;
     cursor: pointer;
-    transition: background 120ms, color 120ms;
   }
-  .theme-toggle:active { background: var(--btn-hover); color: var(--btn-hover-text); }
+  .theme-toggle:active { background: var(--btn-active-bg); }
   .app {
     width: 100%;
-    max-width: 380px;
+    max-width: 400px;
     padding: 20px 16px;
   }
   h1 {
     text-align: center;
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    margin: 0 0 8px;
   }
   .hint {
     text-align: center;
     font-size: 13px;
-    letter-spacing: 0.01em;
     color: var(--sub);
-    margin: 0 0 18px;
+    margin: 0 0 16px;
     min-height: 16px;
   }
   .display {
-    background: var(--display-bg);
+    background: var(--card-bg);
     border: 1px solid var(--line);
-    border-radius: 0;
-    padding: 20px 16px;
-    margin-bottom: 16px;
+    border-radius: 14px;
+    padding: 18px 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   }
   .expr {
     text-align: right;
-    font-size: 14px;
-    letter-spacing: 0.01em;
+    font-size: 15px;
     color: var(--sub);
-    min-height: 17px;
+    min-height: 18px;
     margin-bottom: 8px;
   }
   .current {
     text-align: right;
-    font-size: 40px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
+    font-size: 42px;
+    font-weight: 800;
     word-break: break-all;
     font-variant-numeric: tabular-nums;
   }
   .sub-total {
     text-align: right;
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    color: var(--sub);
-    min-height: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    min-height: 15px;
     margin-top: 8px;
     padding-top: 8px;
     border-top: 1px solid var(--line);
@@ -121,66 +133,63 @@
   .keypad {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 1px;
-    background: var(--line);
-    border: 1px solid var(--line);
+    gap: 8px;
   }
   button {
-    border: none;
-    border-radius: 0;
-    font-size: 18px;
-    padding: 18px 0;
+    border: 1px solid var(--btn-border);
+    border-radius: 12px;
+    font-size: 20px;
+    font-weight: 600;
+    padding: 20px 0;
     cursor: pointer;
     color: var(--text);
     background: var(--btn-bg);
-    transition: background 100ms, color 100ms;
     font-family: inherit;
   }
-  button:active { background: var(--btn-hover); color: var(--btn-hover-text); }
+  button:active { background: var(--btn-active-bg); }
   button.unit {
+    background: var(--func-bg);
     color: var(--text);
-    font-size: 14px;
-    letter-spacing: 0.03em;
+    font-size: 16px;
   }
   button.op {
-    background: var(--accent-bg);
-    color: var(--accent);
+    background: var(--op-bg);
+    color: var(--op-text);
+    border-color: var(--op-bg);
     font-weight: 700;
-    font-size: 19px;
+    font-size: 22px;
   }
   button.op.active {
-    background: var(--accent);
-    color: #000;
+    background: var(--op-active-bg);
+    border-color: var(--op-active-bg);
   }
   button.func {
-    color: var(--sub);
-    font-size: 14px;
-    letter-spacing: 0.02em;
+    background: var(--func-bg);
+    color: var(--text);
+    font-size: 16px;
   }
   button.eq {
-    background: var(--text);
-    color: var(--bg);
-    font-weight: 700;
-    font-size: 16px;
-    letter-spacing: 0.08em;
+    background: var(--eq-bg);
+    color: var(--eq-text);
+    border-color: var(--eq-bg);
+    font-weight: 800;
+    font-size: 20px;
   }
-  button.eq:active { background: var(--accent); color: #000; }
+  button.eq:active { background: var(--eq-active-bg); border-color: var(--eq-active-bg); }
   button.zero {
     grid-column: span 2;
   }
   .detail-toggle {
     display: none;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
   .detail-toggle button {
     width: 100%;
-    border: 1px solid var(--line);
+    background: var(--func-bg);
     color: var(--text);
-    font-size: 13px;
-    letter-spacing: 0.02em;
-    padding: 12px 0;
+    font-size: 15px;
+    padding: 14px 0;
   }
-  .detail-toggle button:active { background: var(--btn-hover); color: var(--btn-hover-text); }
   .modal-overlay {
     display: none;
     position: fixed;
@@ -196,12 +205,8 @@
   }
   .modal {
     background: var(--bg);
-    border: none;
-    border-radius: 0;
     width: 100%;
-    max-width: none;
     height: 100%;
-    max-height: none;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -210,42 +215,47 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    padding: 18px 20px;
+    font-size: 16px;
+    font-weight: 800;
+    background: var(--card-bg);
     border-bottom: 1px solid var(--line);
   }
   .modal-header button {
-    background: transparent;
-    padding: 4px 8px;
+    background: var(--func-bg);
+    border: none;
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
     font-size: 18px;
-    color: var(--sub);
+    color: var(--text);
   }
   .modal-formula {
     padding: 12px 20px;
     font-size: 15px;
-    letter-spacing: 0.01em;
     color: var(--sub);
+    background: var(--card-bg);
     border-bottom: 1px solid var(--line);
     min-height: 18px;
   }
   .modal-start {
-    padding: 14px 20px;
+    padding: 16px 20px;
+    background: var(--card-bg);
     border-bottom: 1px solid var(--line);
     overflow: hidden;
   }
   .modal-start label {
     display: block;
-    font-size: 12px;
-    letter-spacing: 0.02em;
+    font-size: 13px;
+    font-weight: 600;
     color: var(--sub);
     margin-bottom: 8px;
   }
   .time-input-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
   }
   .time-input-row input {
     width: auto;
@@ -253,27 +263,50 @@
     min-width: 0;
     text-align: center;
     background: var(--btn-bg);
-    border: 1px solid var(--line);
-    border-radius: 0;
+    border: 1px solid var(--btn-border);
+    border-radius: 10px;
     color: var(--text);
-    font-size: 22px;
-    padding: 10px;
+    font-size: 24px;
+    font-weight: 700;
+    padding: 12px;
     font-family: inherit;
   }
   .time-input-row span {
     color: var(--sub);
-    font-size: 15px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .modal-summary {
+    display: none;
+    margin: 16px 20px 0;
+    padding: 16px 18px;
+    background: var(--accent-bg);
+    border-radius: 12px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-summary.show { display: flex; }
+  .modal-summary .summary-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .modal-summary .summary-time {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
   }
   .modal-list {
     flex: 1;
     overflow-y: auto;
-    padding: 4px 20px 24px;
+    padding: 8px 20px 24px;
   }
   .detail-row {
     display: flex;
     align-items: baseline;
     gap: 10px;
-    padding: 16px 0;
+    padding: 14px 0;
     border-bottom: 1px solid var(--line);
     font-size: 16px;
     font-variant-numeric: tabular-nums;
@@ -282,14 +315,14 @@
   .detail-row .detail-label {
     flex: 0 0 auto;
     color: var(--sub);
-    font-size: 13px;
-    letter-spacing: 0.04em;
+    font-size: 14px;
+    font-weight: 600;
     width: 3.5em;
   }
   .detail-row .detail-time {
     flex: 1;
     text-align: right;
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 700;
   }
 </style>
@@ -357,6 +390,10 @@
         <span>分</span>
       </div>
     </div>
+    <div class="modal-summary" id="modal-summary">
+      <span class="summary-label">終了時刻</span>
+      <span class="summary-time" id="summary-time"></span>
+    </div>
     <div class="modal-list" id="detail-list"></div>
   </div>
 </div>
@@ -371,6 +408,7 @@
     document.documentElement.setAttribute('data-theme', theme);
     themeBtn.textContent = theme === 'dark' ? 'DARK' : 'LIGHT';
     localStorage.setItem('time-calc-theme', theme);
+    document.getElementById('theme-color-meta').setAttribute('content', theme === 'dark' ? '#101114' : '#eef0f3');
   }
 
   themeBtn.addEventListener('click', () => {
@@ -659,8 +697,10 @@
     const startHEl = document.getElementById('detail-start-h');
     const startMEl = document.getElementById('detail-start-m');
     const listEl = document.getElementById('detail-list');
+    const summaryEl = document.getElementById('modal-summary');
     if ((startHEl.value === '' && startMEl.value === '') || !lastMultiply) {
       listEl.innerHTML = '';
+      summaryEl.classList.remove('show');
       return;
     }
     const hh = parseInt(startHEl.value, 10) || 0;
@@ -674,6 +714,14 @@
         '</span><span class="detail-time">' + formatClockKanji(t) + '</span></div>';
     }
     listEl.innerHTML = html;
+
+    // 何回もある場合は、一番下までスクロールしなくても最終的な終了時刻が見えるようにする
+    if (lastMultiply.count > 1) {
+      document.getElementById('summary-time').textContent = formatClockKanji(t);
+      summaryEl.classList.add('show');
+    } else {
+      summaryEl.classList.remove('show');
+    }
   }
 
   function openDetailModal() {
