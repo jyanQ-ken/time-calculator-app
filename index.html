@@ -883,31 +883,10 @@
     document.getElementById('modal-overlay').classList.remove('open');
   }
 
-  // タップした瞬間（指を離す前）に反応させて、体感の速さを上げる
-  //
-  // pointerdownでボタンの処理を行うと、直後にレイアウトが変わる場合
-  // （詳細ボタンが出現するなど）、指を離した後に発生する「ゴーストクリック」が
-  // ズレた位置の別ボタンに命中してしまうことがあるため、ここで確実に無効化する。
-  let suppressGhostClick = false;
-  document.addEventListener('click', (e) => {
-    if (suppressGhostClick) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  }, true);
-
+  // ボタン反応：iPhoneで連打扱いになる不具合があったため、
+  // 通常のclickイベントで確実に1回だけ反応する方式に戻す
   function fastTap(el, handler) {
-    el.addEventListener('pointerdown', (e) => {
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
-      suppressGhostClick = true;
-      e.preventDefault();
-      handler(e);
-      setTimeout(() => { suppressGhostClick = false; }, 400);
-    });
-    el.addEventListener('click', (e) => {
-      if (suppressGhostClick) return; // pointerdownで処理済み
-      handler(e); // マウスのみ／pointer未対応環境向けフォールバック
-    });
+    el.addEventListener('click', handler);
   }
 
   document.querySelectorAll('button.num').forEach(btn => {
