@@ -828,17 +828,29 @@
   }
 
   // タップした瞬間（指を離す前）に反応させて、体感の速さを上げる
+  //
+  // pointerdownでボタンの処理を行うと、直後にレイアウトが変わる場合
+  // （詳細ボタンが出現するなど）、指を離した後に発生する「ゴーストクリック」が
+  // ズレた位置の別ボタンに命中してしまうことがあるため、ここで確実に無効化する。
+  let suppressGhostClick = false;
+  document.addEventListener('click', (e) => {
+    if (suppressGhostClick) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+
   function fastTap(el, handler) {
-    let handledByPointer = false;
     el.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
-      handledByPointer = true;
+      suppressGhostClick = true;
       e.preventDefault();
       handler(e);
+      setTimeout(() => { suppressGhostClick = false; }, 400);
     });
     el.addEventListener('click', (e) => {
-      if (handledByPointer) { handledByPointer = false; return; }
-      handler(e); // pointerイベント非対応の環境向けフォールバック
+      if (suppressGhostClick) return; // pointerdownで処理済み
+      handler(e); // マウスのみ／pointer未対応環境向けフォールバック
     });
   }
 
