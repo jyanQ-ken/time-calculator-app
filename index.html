@@ -276,6 +276,16 @@
     font-size: 16px;
     font-weight: 600;
   }
+  .start-reset-btn {
+    flex: 0 0 auto;
+    background: var(--func-bg);
+    color: var(--text);
+    border: 1px solid var(--btn-border);
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 12px;
+  }
   .adjust-row {
     display: flex;
     align-items: center;
@@ -450,6 +460,7 @@
         <span>時</span>
         <input type="number" id="detail-start-m" min="0" max="59" placeholder="00" inputmode="numeric">
         <span>分</span>
+        <button type="button" id="start-reset" class="start-reset-btn">0:00</button>
       </div>
     </div>
     <div class="modal-start">
@@ -852,6 +863,11 @@
   document.getElementById('detail-start-h').addEventListener('input', renderDetailList);
   document.getElementById('detail-start-m').addEventListener('input', renderDetailList);
   document.getElementById('detail-adjust').addEventListener('input', renderDetailList);
+  fastTap(document.getElementById('start-reset'), () => {
+    document.getElementById('detail-start-h').value = '0';
+    document.getElementById('detail-start-m').value = '0';
+    renderDetailList();
+  });
   fastTap(document.getElementById('adjust-toggle'), (e) => {
     const btn = e.currentTarget || document.getElementById('adjust-toggle');
     const on = !btn.classList.contains('on');
