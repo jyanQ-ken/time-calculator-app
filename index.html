@@ -481,7 +481,7 @@
     document.getElementById('theme-color-meta').setAttribute('content', theme === 'dark' ? '#101114' : '#eef0f3');
   }
 
-  themeBtn.addEventListener('click', () => {
+  fastTap(themeBtn, () => {
     const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     applyTheme(next);
   });
@@ -816,29 +816,44 @@
     document.getElementById('modal-overlay').classList.remove('open');
   }
 
+  // タップした瞬間（指を離す前）に反応させて、体感の速さを上げる
+  function fastTap(el, handler) {
+    let handledByPointer = false;
+    el.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      handledByPointer = true;
+      e.preventDefault();
+      handler(e);
+    });
+    el.addEventListener('click', (e) => {
+      if (handledByPointer) { handledByPointer = false; return; }
+      handler(e); // pointerイベント非対応の環境向けフォールバック
+    });
+  }
+
   document.querySelectorAll('button.num').forEach(btn => {
-    btn.addEventListener('click', () => pressDigit(btn.textContent));
+    fastTap(btn, () => pressDigit(btn.textContent));
   });
-  document.getElementById('btn-clear').addEventListener('click', reset);
-  document.getElementById('btn-back').addEventListener('click', pressBack);
-  document.getElementById('btn-mul').addEventListener('click', () => pressOp('×'));
-  document.getElementById('btn-div').addEventListener('click', () => pressOp('÷'));
-  document.getElementById('btn-add').addEventListener('click', () => pressOp('+'));
-  document.getElementById('btn-sub').addEventListener('click', () => pressOp('−'));
-  document.getElementById('btn-eq').addEventListener('click', pressEqual);
-  document.getElementById('btn-h').addEventListener('click', pressUnitHour);
-  document.getElementById('btn-m').addEventListener('click', pressUnitMinute);
-  document.getElementById('btn-s').addEventListener('click', pressUnitSecond);
-  document.getElementById('btn-detail').addEventListener('click', openDetailModal);
-  document.getElementById('modal-close').addEventListener('click', closeDetailModal);
+  fastTap(document.getElementById('btn-clear'), reset);
+  fastTap(document.getElementById('btn-back'), pressBack);
+  fastTap(document.getElementById('btn-mul'), () => pressOp('×'));
+  fastTap(document.getElementById('btn-div'), () => pressOp('÷'));
+  fastTap(document.getElementById('btn-add'), () => pressOp('+'));
+  fastTap(document.getElementById('btn-sub'), () => pressOp('−'));
+  fastTap(document.getElementById('btn-eq'), pressEqual);
+  fastTap(document.getElementById('btn-h'), pressUnitHour);
+  fastTap(document.getElementById('btn-m'), pressUnitMinute);
+  fastTap(document.getElementById('btn-s'), pressUnitSecond);
+  fastTap(document.getElementById('btn-detail'), openDetailModal);
+  fastTap(document.getElementById('modal-close'), closeDetailModal);
   document.getElementById('modal-overlay').addEventListener('click', (e) => {
     if (e.target.id === 'modal-overlay') closeDetailModal();
   });
   document.getElementById('detail-start-h').addEventListener('input', renderDetailList);
   document.getElementById('detail-start-m').addEventListener('input', renderDetailList);
   document.getElementById('detail-adjust').addEventListener('input', renderDetailList);
-  document.getElementById('adjust-toggle').addEventListener('click', (e) => {
-    const btn = e.target;
+  fastTap(document.getElementById('adjust-toggle'), (e) => {
+    const btn = e.currentTarget || document.getElementById('adjust-toggle');
     const on = !btn.classList.contains('on');
     btn.classList.toggle('on', on);
     btn.setAttribute('aria-pressed', String(on));
