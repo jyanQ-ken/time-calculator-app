@@ -239,6 +239,40 @@
     border-bottom: 1px solid var(--line);
     min-height: 18px;
   }
+  .bag-selector {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 12px 20px;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--line);
+  }
+  .bag-selector-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--sub);
+  }
+  .bag-btn-row {
+    display: flex;
+    gap: 6px;
+  }
+  .bag-btn {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid var(--btn-border);
+    border-radius: 8px;
+    background: var(--btn-bg);
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .bag-btn.active {
+    background: var(--op-bg);
+    border-color: var(--op-bg);
+    color: var(--op-text);
+  }
   .modal-start {
     padding: 16px 20px;
     background: var(--card-bg);
@@ -345,6 +379,15 @@
     font-weight: 700;
     color: var(--accent);
     margin-top: 4px;
+  }
+  .detail-row-bag {
+    flex: 0 0 auto;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--sub);
+    background: var(--func-bg);
+    border-radius: 6px;
+    padding: 3px 8px;
   }
   .modal-summary {
     display: none;
@@ -453,6 +496,13 @@
       <button id="modal-close">✕</button>
     </div>
     <div class="modal-formula" id="modal-formula"></div>
+    <div class="bag-selector">
+      <div class="bag-btn-row" id="bag-btn-row">
+        <button type="button" class="bag-btn active" data-n="1">1</button>
+        <button type="button" class="bag-btn" data-n="2">2</button>
+        <button type="button" class="bag-btn" data-n="3">3</button>
+      </div>
+    </div>
     <div class="modal-start">
       <label>開始時刻</label>
       <div class="time-input-row">
@@ -511,6 +561,7 @@
   let entryType = 'duration'; // 今入力中の値の種類: 'duration' | 'time' | 'count'
   let historyText = '';       // 画面上部に残す計算過程
   let lastMultiply = null;    // 直前の「時間 × 回数」の内訳（詳細ボタン用）
+  let bagMultiplier = 1;      // 詳細画面：1回あたりの袋数
 
   const HINTS = {
     duration: '時間を入力してください',
@@ -796,8 +847,11 @@
       const plusHtml = adjustOn && adjustMin > 0
         ? '<span class="detail-row-plus">→ ' + formatClockKanji(t + adjustMin * 60) + '</span>'
         : '';
+      const bagHtml = bagMultiplier > 1
+        ? '<span class="detail-row-bag">' + (i * bagMultiplier) + '袋</span>'
+        : '';
       html += '<div class="detail-row"><div class="detail-row-main"><span class="detail-label">' + label +
-        '</span><span class="detail-time">' + formatClockKanji(t) + '</span></div>' + plusHtml + '</div>';
+        '</span>' + bagHtml + '<span class="detail-time">' + formatClockKanji(t) + '</span></div>' + plusHtml + '</div>';
     }
     listEl.innerHTML = html;
 
@@ -819,6 +873,8 @@
       startHEl.value = '0';
       startMEl.value = '0';
     }
+    bagMultiplier = 1;
+    document.querySelectorAll('.bag-btn').forEach(b => b.classList.toggle('active', b.dataset.n === '1'));
     renderDetailList();
     document.getElementById('modal-overlay').classList.add('open');
   }
@@ -886,6 +942,13 @@
     btn.classList.toggle('on', on);
     btn.setAttribute('aria-pressed', String(on));
     renderDetailList();
+  });
+  document.querySelectorAll('.bag-btn').forEach(btn => {
+    fastTap(btn, () => {
+      bagMultiplier = parseInt(btn.dataset.n, 10);
+      document.querySelectorAll('.bag-btn').forEach(b => b.classList.toggle('active', b === btn));
+      renderDetailList();
+    });
   });
   // タップした時に中身を選択状態にして、そのまま打ち直せるようにする（「0」の後ろに数字が付くのを防ぐ）
   document.getElementById('detail-start-h').addEventListener('focus', (e) => e.target.select());
